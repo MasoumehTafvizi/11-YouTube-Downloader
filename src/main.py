@@ -1,5 +1,6 @@
 from pathlib import Path
-from pytubefix import YouTube 
+from pytubefix import YouTube
+from tqdm import tqdm
 
 class YouTubeDownloader:
     def __init__(self, url, output_path=None, quality=None):
@@ -21,24 +22,27 @@ class YouTubeDownloader:
                 file_extension='mp4', 
                 res=self.quality
             ).first()
-            
+        self.pbar = tqdm(desc='Downloading...', total=stream.filesize, unit='B', unit_scale=True)
         stream.download(output_path=self.output_path)
     
     def on_progress(self, stream, chunk, bytes_remaining):
-        total_size = stream.filesize
-        bytes_downloaded = total_size - bytes_remaining
+        # total_size = stream.filesize
+        # bytes_downloaded = total_size - bytes_remaining
         
-        print(
-            f"\r{'downloading...':<15}"
-            f"{(100*(total_size-bytes_remaining)/total_size):>3.0f}% "
-            f"| {bytes_downloaded/1024/1024:>5.1f}MB",
-            f" of {total_size/1024/1024:>5.1f}MB",
-            end=''
-        )
+        # print(
+        #     f"\r{'downloading...':<15}"
+        #     f"{(100*(total_size-bytes_remaining)/total_size):>3.0f}% "
+        #     f"| {bytes_downloaded/1024/1024:>5.1f}MB",
+        #     f" of {total_size/1024/1024:>5.1f}MB",
+        #     end=''
+        # )
+        
+        current_size = stream.filesize - bytes_remaining
+        self.pbar.update(current_size - self.pbar.n)
     
     def on_complete(self, stream, file_path):
-        print(f"\nDownload completed. File saved to :{file_path}")
-        
+        # print(f"\nDownload completed. File saved to :{file_path}")
+        self.pbar.close()
         
 if __name__ == "__main__":
     url = input("Enter YouTube video URL: ")
